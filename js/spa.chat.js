@@ -40,24 +40,131 @@ spa.chat = (function () {
             slider_opened_px: 0
         },
         jqueryMap = {},
-        setJqueryMap, configModule, initModule;
+        setJqueryMap, getEmSize, setPxSizes, setSliderPosition,
+        onClickToggle, configModule, initModule;
     //----------------- END MODULE SCOPE VARIABLES ---------------
 
     //------------------- BEGIN UTILITY METHODS ------------------
+    getEmSize = function (elem) {
+        return Number(
+            getComputedStyle(elem, '').fontSize.match(/\d*\.?\d*/)[0]
+        );
+    };
     //-------------------- END UTILITY METHODS -------------------
 
     //--------------------- BEGIN DOM METHODS --------------------
     // Begin DOM method /setJqueryMap/
     setJqueryMap = function () {
-        var $container = stateMap.$container;
+        var
+        $append_target = stateMap.$append_target,
+            $slider = $append_target.find('.spa-chat');
         jqueryMap = {
-            $container: $container
+            $slider: $slider,
+            $head: $slider.find('.spa-chat-head'),
+            $toggle: $slider.find('.spa-chat-head-toggle'),
+            $title: $slider.find('.spa-chat-head-title'),
+            $sizer: $slider.find('.spa-chat-sizer'),
+            $msgs: $slider.find('.spa-chat-msgs'),
+            $box: $slider.find('.spa-chat-box'),
+            $input: $slider.find('.spa-chat-input input[type=text]')
         };
     };
     // End DOM method /setJqueryMap/
+
+    // Begin DOM method /setPxSizes/
+    setPxSizes = function () {
+        var px_per_em, opened_height_em;
+        px_per_em = getEmSize(jqueryMap.$slider.get(0));
+        opened_height_em = configMap.slider_opened_em;
+        stateMap.px_per_em = px_per_em;
+        stateMap.slider_closed_px = configMap.slider_closed_em * px_per_em;
+        stateMap.slider_opened_px = opened_height_em * px_per_em;
+        jqueryMap.$sizer.css({
+            height: (opened_height_em - 2) * px_per_em
+        });
+    };
+    // End DOM method /setPxSizes/
+
+    // Begin public method /setSliderPosition/
+    // Example : spa.chat.setSliderPosition( 'closed' );
+    // Purpose : Move the chat slider to the requested position
+    // Arguments : // * position_type - enum('closed', 'opened', or 'hidden')
+    // * callback - optional callback to be run end at the end
+    // of slider animation. The callback receives a jQuery
+    // collection representing the slider div as its single
+    // argument
+    // Action :
+    // This method moves the slider into the requested position.
+    // If the requested position is the current position, it
+    // returns true without taking further action
+    // Returns :
+    // * true - The requested position was achieved
+    // * false - The requested position was not achieved
+    // Throws : none
+    //
+    setSliderPosition = function (position_type, callback) {
+        var
+        height_px, animate_time, slider_title, toggle_text;
+        // return true if slider already in requested position
+        if (stateMap.position_type === position_type) {
+            return true;
+        }
+
+        // prepare animate parameters
+        switch (position_type) {
+        case 'opened':
+            height_px = stateMap.slider_opened_px;
+            animate_time = configMap.slider_open_time;
+            slider_title = configMap.slider_opened_title;
+            toggle_text = '=';
+            break;
+        case 'hidden':
+            height_px = 0;
+            animate_time = configMap.slider_open_time;
+            slider_title = '';
+            toggle_text = '+';
+            break;
+        case 'closed':
+            height_px = stateMap.slider_closed_px;
+            animate_time = configMap.slider_close_time;
+            slider_title = configMap.slider_closed_title;
+            toggle_text = '+';
+            break;
+            // bail for unknown position_type
+        default:
+            return false;
+        }
+        // animate slider position change
+        stateMap.position_type = '';
+        jqueryMap.$slider.animate({
+                height: height_px
+            },
+            animate_time,
+            function () {
+                jqueryMap.$toggle.prop('title', slider_title);
+                jqueryMap.$toggle.text(toggle_text);
+                stateMap.position_type = position_type;
+                if (callback) {
+                    callback(jqueryMap.$slider);
+                }
+            }
+        );
+        return true;
+    };
+    // End public DOM method /setSliderPosition/
+
     //---------------------- END DOM METHODS ---------------------
 
     //------------------- BEGIN EVENT HANDLERS -------------------
+    onClickToggle = function (event) {
+        var set_chat_anchor = configMap.set_chat_anchor;
+        if (stateMap.position_type === 'opened') {
+            set_chat_anchor('closed');
+        } else if (stateMap.position_type === 'closed') {
+            set_chat_anchor('opened');
+        }
+        return false;
+    };
     //-------------------- END EVENT HANDLERS --------------------
 
     //------------------- BEGIN PUBLIC METHODS -------------------
@@ -127,11 +234,16 @@ spa.chat = (function () {
     // Returns : true on success, false on failure
     // Throws : none
     //
-    initModule = function ($container) {
+    initModule = function ($append_target) {
         // fill the chat slider container with our HTML tempate
-        $container.html(configMap.main_html);
-        stateMap.$container = $container;
+        $append_target.append(configMap.main_html);
+        stateMap.$append_target = $append_target;
         setJqueryMap();
+        setPxSizes();
+        // initialize chat slider to default title and state
+        jqueryMap.$toggle.prop('title', configMap.slider_closed_title);
+        jqueryMap.$head.click(onClickToggle);
+        stateMap.position_type = 'closed';
         return true;
     };
     // End public method /initModule/
@@ -155,6 +267,7 @@ spa.chat = (function () {
 
     // return public methods
     return {
+        setSliderPosition: setSliderPosition,
         configModule: configModule,
         initModule: initModule
     };
