@@ -23,15 +23,17 @@ spa.shell = (function () {
         chat_extend_height: 450,
         chat_retract_height: 15,
         chat_extended_title: 'Click to retract',
-        chat_retracted_title: 'Click to extend'
+        chat_retracted_title: 'Click to extend',
+        resize_interval: 200
     },
         stateMap = {
+            $container: undefined,
             anchor_map: {},
-            is_chat_retracted: true
+            resize_idto: undefined
         },
         jqueryMap = {},
         copyAnchorMap, setJqueryMap, changeAnchorPart,
-        onHashChange, setChatAnchor, initModule;
+        onHashChange, onResize, setChatAnchor, initModule;
     //----------------- END MODULE SCOPE VARIABLES ---------------
     //-------------------- BEGIN UTILITY METHODS -----------------
     // Returns copy of stored anchor map; minimizes overhead
@@ -184,6 +186,22 @@ spa.shell = (function () {
     };
     // End Event handler /onClickChat/
 
+    // Begin Event handler /onResize/
+    onResize = function () {
+        if (stateMap.resize_idto) {
+            return true;
+        }
+        spa.chat.handleResize();
+        stateMap.resize_idto = setTimeout(
+            function () {
+                stateMap.resize_idto = undefined;
+            },
+            configMap.resize_interval
+        );
+        return true;
+    };
+    // End Event handler /onResize/
+
     //-------------------- END EVENT HANDLERS --------------------
 
     //---------------------- BEGIN CALLBACKS ---------------------
@@ -243,7 +261,7 @@ spa.shell = (function () {
             people_model: spa.model.people
         });
         spa.chat.initModule(jqueryMap.$container);
-        
+
         // Handle URI anchor change events
         // This is done /after/ all feature modules are configured
         // and initialized, otherwise they will not be ready to handle
@@ -251,6 +269,7 @@ spa.shell = (function () {
         // is considered on-load
         //
         $(window)
+            .bind('resize', onResize)
             .bind('hashchange', onHashchange)
             .trigger('hashchange');
     };
