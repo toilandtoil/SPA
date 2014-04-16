@@ -200,24 +200,6 @@ spa.chat = (function () {
     // End public method /configModule/
 
 
-    // Begin callback method /setChatAnchor/
-    // Example : setChatAnchor( 'closed' );
-    // Purpose : Change the chat component of the anchor
-    // Arguments:
-    // * position_type - may be 'closed' or 'opened'
-    // Action :
-    // Changes the URI anchor parameter 'chat' to the requested
-    // value if possible.
-    // Returns :
-    // * true - requested anchor part was updated
-    // * false - requested anchor part was not updated
-    // Throws : none
-    //
-
-
-
-
-
     // Begin public method /initModule/
     // Example : spa.chat.initModule( $('#div_id') );
     // Purpose :
@@ -248,22 +230,6 @@ spa.chat = (function () {
     };
     // End public method /initModule/
 
-    // Begin public method /setSliderPosition/
-    //
-    // Example : spa.chat.setSliderPosition( 'closed' );
-    // Purpose : Ensure chat slider is in the requested state
-    // Arguments:
-    // * position_type - enum('closed', 'opened', or 'hidden')
-    // * callback - optional callback at end of animation.
-    // (callback receives slider DOM element as argument)
-    // Action :
-    // Leaves slider in current state if it matches requested,
-    // otherwise animate to requested state.
-    // Returns :
-    // * true - requested state achieved
-    // * false - requested state not achieved
-    // Throws : none
-    //
 
     // return public methods
     return {
