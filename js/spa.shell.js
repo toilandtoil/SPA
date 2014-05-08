@@ -285,6 +285,12 @@ spa.shell = (function () {
         });
         spa.chat.initModule(jqueryMap.$container);
 
+        spa.avtr.configModule({
+            chat_model: spa.model.chat,
+            people_model: spa.model.people
+        });
+        spa.avtr.initModule(jqueryMap.$nav);
+        
         // Handle URI anchor change events
         // This is done /after/ all feature modules are configured
         // and initialized, otherwise they will not be ready to handle
@@ -295,7 +301,7 @@ spa.shell = (function () {
             .bind('resize', onResize)
             .bind('hashchange', onHashchange)
             .trigger('hashchange');
-        
+
         $.gevent.subscribe($container, 'spa-login', onLogin);
         $.gevent.subscribe($container, 'spa-logout', onLogout);
         jqueryMap.$acct
