@@ -1,5 +1,5 @@
 /*
- * app.js - Express server with middleware
+ * app.js - Express server static files
  */
 
 
@@ -15,6 +15,8 @@ var
 app.configure( function () {
     app.use( express.bodyParser() );
     app.use( express.methodOverride() );
+    app.use( express.static( __dirname + '/public' ) );
+    app.use( app.router );
 });
 app.configure( 'development', function () {
     app.use( express.logger() );
@@ -27,7 +29,7 @@ app.configure( 'production', function () {
     app.use( express.errorHandler() );
 });
 app.get( '/', function ( request, response ) {
-    response.send( 'Hello Express' );
+    response.redirect( '/spa.html' );
 });
 // -------------- END SERVER CONFIGURATION ----------------
 // ----------------- BEGIN START SERVER -------------------
