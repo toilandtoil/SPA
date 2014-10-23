@@ -1,7 +1,6 @@
 /*
- * app.js - Simple express server
+ * app.js - Express server with middleware
  */
-
 
 
 // ------------ BEGIN MODULE SCOPE VARIABLES --------------
@@ -13,6 +12,20 @@ var
     server = http.createServer( app );
 // ------------- END MODULE SCOPE VARIABLES ---------------
 // ------------- BEGIN SERVER CONFIGURATION ---------------
+app.configure( function () {
+    app.use( express.bodyParser() );
+    app.use( express.methodOverride() );
+});
+app.configure( 'development', function () {
+    app.use( express.logger() );
+    app.use( express.errorHandler({
+        dumpExceptions : true,
+        showStack : true
+    }) );
+});
+app.configure( 'production', function () {
+    app.use( express.errorHandler() );
+});
 app.get( '/', function ( request, response ) {
     response.send( 'Hello Express' );
 });
