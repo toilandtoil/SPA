@@ -1,1 +1,1 @@
-var b = 'the meaning of life is a clam';
+var b = 'the meaning of life is God';
