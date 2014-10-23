@@ -36,3 +36,4 @@ com_crashlytics_export_strings.xml
 
 # don't check in node_modules reasoning here: http://stackoverflow.com/questions/11459475/should-i-check-in-node-modules-to-git-when-creating-a-node-js-app-on-heroku
 node_modules/
+webapp/npm-debug.log
