@@ -1,5 +1,5 @@
 /*
- * app.js - Express server with basic auth
+ * app.js - Express server with routing
  */
 
 // ------------ BEGIN MODULE SCOPE VARIABLES --------------
@@ -15,7 +15,6 @@ var
 app.configure(function () {
     app.use(express.bodyParser());
     app.use(express.methodOverride());
-    app.use(express.basicAuth('user', 'spa'));
     app.use(express.static(__dirname + '/public'));
     app.use(app.router);
 });
