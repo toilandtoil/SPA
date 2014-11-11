@@ -19,7 +19,9 @@ var configRoutes,
     dbHandle = new mongodb.Db(
         'spa', mongoServer, { safe: true }
     ),
-    makeMongoId = mongodb.ObjectID;
+    makeMongoId = mongodb.ObjectID,
+    objTypeMap = { 'user': {} };
+
 // ------------- END MODULE SCOPE VARIABLES ---------------
 // ---------------- BEGIN PUBLIC METHODS ------------------
 configRoutes = function (app, server) {
@@ -28,7 +30,13 @@ configRoutes = function (app, server) {
     });
     app.all('/:obj_type/*?', function (request, response, next) {
         response.contentType('json');
-        next();
+        if (objTypeMap[ request.params.obj_type ]) {
+            next();
+        }
+        else {
+            response.send({ error_msg: request.params.obj_type + ' is not a valid object type'
+            });
+        }
     });
     app.get('/:obj_type/list', function (request, response) {
         dbHandle.collection(
@@ -97,16 +105,16 @@ configRoutes = function (app, server) {
             }
         );
     });
-    app.get( '/:obj_type/delete/:id', function ( request, response ) {
-        var find_map = { _id: makeMongoId( request.params.id ) };
+    app.get('/:obj_type/delete/:id', function (request, response) {
+        var find_map = { _id: makeMongoId(request.params.id) };
         dbHandle.collection(
             request.params.obj_type,
-            function ( outer_error, collection ) {
+            function (outer_error, collection) {
                 var options_map = { safe: true, single: true };
                 collection.remove(
                     find_map,
                     options_map,
-                    function ( inner_error, delete_count ) {
+                    function (inner_error, delete_count) {
                         response.send({ delete_count: delete_count });
                     }
                 );
