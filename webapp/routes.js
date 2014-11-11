@@ -91,7 +91,7 @@ configRoutes = function (app, server) {
                                 function (inner_error, result_map) {
                                     console.log('inside checkSchema: obj_map = ');
                                     console.log(obj_map);
-                                    console.log('inside checkSchema: result_map = ');
+                                    console.log('inside checkSchema: result_map =  ');
                                     console.log(result_map);
 
                                     response.send(result_map);
