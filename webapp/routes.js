@@ -10,8 +10,12 @@
 /*global */
 // ------------ BEGIN MODULE SCOPE VARIABLES --------------
 'use strict';
-var configRoutes,
+var loadSchema,
+    checkSchema,
+    configRoutes,
     mongodb = require('mongodb'),
+    fsHandle = require('fs'),
+    JSV = require('JSV').JSV,
     mongoServer = new mongodb.Server(
         'localhost',
         mongodb.Connection.DEFAULT_PORT
@@ -19,10 +23,24 @@ var configRoutes,
     dbHandle = new mongodb.Db(
         'spa', mongoServer, { safe: true }
     ),
+    validator = JSV.createEnvironment(),
     makeMongoId = mongodb.ObjectID,
     objTypeMap = { 'user': {} };
 
 // ------------- END MODULE SCOPE VARIABLES ---------------
+// --------------- BEGIN UTILITY METHODS ------------------
+loadSchema = function (schema_name, schema_path) {
+    fsHandle.readFile(schema_path, 'utf8', function (err, data) {
+        objTypeMap[ schema_name ] = JSON.parse(data);
+    });
+};
+checkSchema = function (obj_type, obj_map, callback) {
+    var
+        schema_map = objTypeMap[ obj_type ],
+        report_map = validator.validate(obj_map, schema_map);
+    callback(report_map.errors);
+};
+// ---------------- END UTILITY METHODS -------------------
 // ---------------- BEGIN PUBLIC METHODS ------------------
 configRoutes = function (app, server) {
     app.get('/', function (request, response) {
@@ -129,4 +147,15 @@ module.exports = { configRoutes: configRoutes };
 dbHandle.open(function () {
     console.log('** Connected to MongoDB, dude **');
 });
+
+// load schemas into memory (objTypeMap)
+(function () {
+    var schema_name, schema_path;
+    for (schema_name in objTypeMap) {
+        if (objTypeMap.hasOwnProperty(schema_name)) {
+            schema_path = __dirname + '/' + schema_name + '.json';
+            loadSchema(schema_name, schema_path);
+        }
+    }
+}());
 // -------------- END MODULE INITIALIZATION ---------------
