@@ -10,9 +10,8 @@
 /*global */
 // ------------ BEGIN MODULE SCOPE VARIABLES --------------
 'use strict';
-var loadSchema,
-    checkSchema,
-    configRoutes,
+var
+    loadSchema, checkSchema, configRoutes,
     mongodb = require('mongodb'),
     fsHandle = require('fs'),
     JSV = require('JSV').JSV,
@@ -40,6 +39,7 @@ checkSchema = function (obj_type, obj_map, callback) {
         report_map = validator.validate(obj_map, schema_map);
     callback(report_map.errors);
 };
+
 // ---------------- END UTILITY METHODS -------------------
 // ---------------- BEGIN PUBLIC METHODS ------------------
 configRoutes = function (app, server) {
@@ -52,7 +52,7 @@ configRoutes = function (app, server) {
             next();
         }
         else {
-            response.send({ error_msg: request.params.obj_type + ' is not a valid object type'
+            response.send({ error_msg: request.params.obj_type + ' is not a valid object type, dude.'
             });
         }
     });
@@ -69,22 +69,47 @@ configRoutes = function (app, server) {
         );
     });
     app.post('/:obj_type/create', function (request, response) {
-        dbHandle.collection(
-            request.params.obj_type,
-            function (outer_error, collection) {
-                var
-                    options_map = { safe: true },
-                    obj_map = request.body;
-                collection.insert(
-                    obj_map,
-                    options_map,
-                    function (inner_error, result_map) {
-                        response.send(result_map);
-                    }
-                );
+
+        var
+            obj_type = request.params.obj_type,
+            obj_map = request.body;
+        checkSchema(
+            obj_type, obj_map,
+            function (error_list) {
+                console.log('inside checkSchema');
+                console.log('error_list is: ');
+                console.log(error_list);
+                if (error_list.length === 0) {
+                    dbHandle.collection(
+                        obj_type,
+                        function (outer_error, collection) {
+
+                            var options_map = { safe: true };
+                            collection.insert(
+                                obj_map,
+                                options_map,
+                                function (inner_error, result_map) {
+                                    console.log('inside checkSchema: obj_map = ');
+                                    console.log(obj_map);
+                                    console.log('inside checkSchema: result_map = ');
+                                    console.log(result_map);
+
+                                    response.send(result_map);
+                                }
+                            );
+                        }
+                    );
+                }
+                else {
+                    response.send({
+                        error_msg: 'Input document not valid',
+                        error_list: error_list
+                    });
+                }
             }
         );
     });
+
     app.get('/:obj_type/read/:id', function (request, response) {
         var find_map = { _id: makeMongoId(request.params.id) };
         dbHandle.collection(
@@ -102,24 +127,38 @@ configRoutes = function (app, server) {
     app.post('/:obj_type/update/:id', function (request, response) {
         var
             find_map = { _id: makeMongoId(request.params.id) },
-            obj_map = request.body;
-        dbHandle.collection(
-            request.params.obj_type,
-            function (outer_error, collection) {
-                var
-                    sort_order = [],
-                    options_map = {
-                        'new': true, upsert: false, safe: true
-                    };
-                collection.findAndModify(
-                    find_map,
-                    sort_order,
-                    obj_map,
-                    options_map,
-                    function (inner_error, updated_map) {
-                        response.send(updated_map);
-                    }
-                );
+            obj_map = request.body,
+            obj_type = request.params.obj_type;
+
+        checkSchema(
+            obj_type, obj_map,
+            function (error_list) {
+                if (error_list.length === 0) {
+                    dbHandle.collection(
+                        obj_type,
+                        function (outer_error, collection) {
+                            var
+                                sort_order = [],
+                                options_map = {
+                                    'new': true, upsert: false, safe: true
+                                };
+                            collection.findAndModify(
+                                find_map,
+                                sort_order,
+                                obj_map,
+                                options_map,
+                                function (inner_error, updated_map) {
+                                    response.send(updated_map);
+                                }
+                            );
+                        }
+                    );
+                } else {
+                    response.send({
+                        error_msg: 'Input document not valid',
+                        error_list: error_list
+                    });
+                }
             }
         );
     });
@@ -145,7 +184,7 @@ module.exports = { configRoutes: configRoutes };
 
 // ------------- BEGIN MODULE INITIALIZATION --------------
 dbHandle.open(function () {
-    console.log('** Connected to MongoDB, dude **');
+    console.log('** Connected to MongoDB, man! **');
 });
 
 // load schemas into memory (objTypeMap)
